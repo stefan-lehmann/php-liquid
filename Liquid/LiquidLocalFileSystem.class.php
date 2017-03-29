@@ -97,9 +97,18 @@ class LiquidLocalFileSystem extends LiquidBlankFileSystem
     $separator = '-';
     $filenameSegments = explode($separator, $filename);
     $section = array_shift($filenameSegments);
+    $longname = implode($separator, $filenameSegments);
     $group = array_shift($filenameSegments);
     $name = implode($separator, $filenameSegments);
-    $pattern = "#(.*/)?$section/([0-9]{2}-)?$group(/.*)?/$name.".LIQUID_INCLUDE_SUFFIX."#i";
+
+    switch($section) {
+      case 'svg':
+        $pattern = "#/.*/$longname.svg#i";
+        break;
+
+      default:
+        $pattern = "#(.*/)?$section/([0-9]{2}-)?$group(/.*)?/$name.".LIQUID_INCLUDE_SUFFIX."#i";
+    }
 
     $dir = new RecursiveDirectoryIterator($this->_root);
     $ite = new RecursiveIteratorIterator($dir);
@@ -111,12 +120,6 @@ class LiquidLocalFileSystem extends LiquidBlankFileSystem
     $fullPath = (strpos($templatePath, '/') !== false)
         ? $this->_root . dirname($templatePath) . '/' . LIQUID_INCLUDE_PREFIX . basename($templatePath) . '.' . LIQUID_INCLUDE_SUFFIX
         : $this->_root . $templatePath . '.' . LIQUID_INCLUDE_SUFFIX;
-
-    $rootRegex = new LiquidRegexp('/' . preg_quote(realpath($this->_root), '/') . '/');
-
-    if (!$rootRegex->match(realpath($fullPath))) {
-      throw new LiquidException("Illegal template path " . $templatePath);
-    }
 
     return $fullPath;
   }
